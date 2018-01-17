@@ -1,0 +1,2071 @@
+
+
+```python
+#Import pandas, numpy and pandas
+import numpy as np
+import pandas as pd
+import utm
+```
+
+
+```python
+#Read population, road and POI files
+
+roads_csv = pd.read_csv('Input/LIM_pixels_population_roadsext_cf.csv')
+poi_file = pd.read_table('Input/data_points.txt','|')
+```
+
+
+```python
+#Drop unnecesary fields, rename columns
+poi_file = poi_file.rename(columns={'x':'lon','y':'lat'})
+```
+
+
+```python
+#Dictionaries
+subtypes  = {
+    'food':[
+        '0x2a00',
+        '0x2a01',
+        '0x2a02',
+        '0x2a03',
+        '0x2a04',
+        '0x2a05',
+        '0x2a06',
+        '0x2a07',
+        '0x2a08',
+        '0x2a09',
+        '0x2a0a',
+        '0x2a0b',
+        '0x2a0c',
+        '0x2a0e',
+        '0x2a0f',
+        '0x2a10',
+        '0x2a11',
+        '0x2a12',
+        '0x2a13',
+        '0x2a1f',
+        '0x2a18',
+        '0x2a1b',
+        '0x2a20',
+        '0x2a21',
+        '0x2a22',
+        '0x2a23',
+        '0x2a24',
+        '0x2a25',
+        '0x2a26',
+        '0x2a27',
+        '0x2a28',
+        '0x2a29',
+        '0x2a2a',
+        '0x2a2b',
+        '0x2a2c',
+        '0x2a2d',
+        '0x2a2e',
+        '0x2a2f'
+    ],
+    'accomodation':[
+        '0x2b00',
+        '0x2b01',
+        '0x2b02',
+        '0x2b03',
+        '0x2b04',
+        '0x2b05',
+        '0x2b1f',
+        '0x2b20',
+        '0x2b22',
+        '0x2b23',
+        '0x2b24',
+        '0x2b25',
+        '0x2b2a',
+        '0x2b2b',
+        '0x2b2c',
+        '0x2b07',
+        '0x2b2f'
+    ],
+    'recreation':[
+        '0x2c09',
+        '0x2c29',
+        '0x2c18',
+        '0x2c19',
+        '0x2c1a',
+        '0x2c08',
+        '0x2c28',
+        '0x2d02',
+        '0x2d0d',
+        '0x2d0e',
+        '0x2d22',
+        '0x2d2d',
+        '0x2d2e',
+        '0x4600',
+        '0x462f'
+    ],
+    'shopping':[
+        '0x2e00',
+        '0x2e01',
+        '0x2e02',
+        '0x2e03',
+        '0x2e04',
+        '0x2e05',
+        '0x2e06',
+        '0x2e07',
+        '0x2e08',
+        '0x2e09',
+        '0x2e0a',
+        '0x2e0b',
+        '0x2e0c',
+        '0x2e0f',
+        '0x2e10',
+        '0x2e1f',
+        '0x2e20',
+        '0x2e21',
+        '0x2e22',
+        '0x2e23',
+        '0x2e24',
+        '0x2e25',
+        '0x2e26',
+        '0x2e27',
+        '0x2e28',
+        '0x2e29',
+        '0x2e2a',
+        '0x2e2b',
+        '0x2e2c',
+        '0x2e2f',
+    ],
+    'services':[
+        '0x2e06',
+        '0x2f01',
+        '0x2f16',
+        '0x2f02',
+        '0x2f22',
+        '0x2f07',
+        '0x2f0a',
+        '0x2f0b',
+        '0x2f0c',
+        '0x2f0d',
+        '0x2f0e',
+        '0x2f22',
+        '0x2f23',
+        '0x2f27',
+        '0x2f2a',
+        '0x2f2b',
+        '0x2f2c',
+        '0x2f2d',
+        '0x2f2e',
+        '0x3100',
+        '0x3116',
+        '0x3117',
+        '0x3118',
+        '0x311a',
+        '0x311b',
+        '0x311c',
+        '0x311d',
+        '0x311e',
+        '0x311f',
+        '0x3120',
+        '0x312f',
+        '0x4c00',
+        '0x4c2f',
+        '0x4d00',
+        '0x4d2f',
+        '0x4e00',
+        '0x4e2f',
+        '0x5100',
+        '0x512f',
+        '0x2f23',
+        '0x2f0e',
+        '0x2f2e',
+        '0x2f05',
+        '0x2f01',
+        '0x640f',
+        '0x642f',
+        '0x2f06',
+        '0x2f04',
+        '0x2f24',
+        '0x5900',
+        '0x592f',
+        '0x2f08',
+        '0x2f1f',
+        '0x2f28',
+        '0x2f1d',
+        '0x2f1e',
+        '0x2f26',
+        '0x2f0b',
+        '0x2f04',
+        '0x2f18',
+        '0x2f2b',
+        '0x4d00',
+        '0x4d2f',
+        '0x2f11',
+        '0x2f12',
+    ]
+}
+```
+
+
+```python
+food_dataframe = pd.DataFrame(subtypes['food'],columns=['GARMINCODE'])
+accomodation_dataframe = pd.DataFrame(subtypes['accomodation'],columns=['GARMINCODE'])
+recreation_dataframe = pd.DataFrame(subtypes['recreation'],columns=['GARMINCODE'])
+shopping_dataframe = pd.DataFrame(subtypes['shopping'],columns=['GARMINCODE'])
+services_dataframe = pd.DataFrame(subtypes['services'],columns=['GARMINCODE'])
+```
+
+
+```python
+#Apply UTM
+for index, row in poi_file.iterrows():
+    [east, north, zone_n, zone_l] = utm.from_latlon(row['lat'], row['lon'])
+    poi_file.ix[index,'utm_n'] = north
+    poi_file.ix[index, 'utm_e'] = east
+```
+
+
+```python
+#Create arrays for the new columns
+
+counts = []
+food = []
+accom = []
+recreat = []
+serv = []
+shop = []
+foodserv = []
+food_garmins = []
+accom_garmins = []
+recreat_garmins = []
+serv_garmins = []
+shop_garmins = []
+```
+
+
+```python
+#For loop with dictionary
+
+for row in roads_csv.iterrows():
+    utm_n = row[1].loc['utm_n']
+    utm_e = row[1].loc['utm_e']
+    frame = poi_file[(poi_file['utm_n'] <= (utm_n + 500))
+                    & (poi_file['utm_n'] >= (utm_n - 500))
+                    & (poi_file['utm_e'] <= (utm_e + 500))
+                    & (poi_file['utm_e'] >= (utm_e - 500))]
+    if frame.shape[0] != 0:
+        counts.append(frame.shape[0])
+        #Join frame with the corresponding subtypes
+        frame_food = pd.merge(frame,food_dataframe,how='inner',on='GARMINCODE')
+        frame_accomodation = pd.merge(frame,accomodation_dataframe,how='inner',on='GARMINCODE')
+        frame_services = pd.merge(frame,services_dataframe,how='inner',on='GARMINCODE')
+        frame_shopping = pd.merge(frame,shopping_dataframe,how='inner',on='GARMINCODE')
+        frame_recreation = pd.merge(frame,recreation_dataframe,how='inner',on='GARMINCODE')
+        
+        
+        foodserv.append(frame_food.shape[0]+frame_accomodation.shape[0]+frame_recreation.shape[0])
+        
+        if frame_food.shape[0] != 0:
+            food_garmins.append(';'.join(frame_food['GARMINCODE']))
+            food.append(frame_food.shape[0])
+        else:
+            food_garmins.append('')
+            food.append(0)
+        
+        if frame_accomodation.shape[0] != 0:
+            accom_garmins.append(';'.join(frame_accomodation['GARMINCODE']))
+            accom.append(frame_accomodation.shape[0])
+        else:
+            accom_garmins.append('')
+            accom.append(0)
+        
+        if frame_services.shape[0] != 0:
+            serv_garmins.append(';'.join(frame_services['GARMINCODE']))
+            serv.append(frame_services.shape[0])
+        else:
+            serv_garmins.append('')
+            serv.append(0)
+        
+        if frame_recreation.shape[0] != 0:
+            recreat_garmins.append(';'.join(frame_recreation['GARMINCODE']))
+            recreat.append(frame_recreation.shape[0])
+        else:
+            recreat_garmins.append('')
+            recreat.append(0)
+        
+        if frame_shopping.shape[0] != 0:
+            shop_garmins.append(';'.join(frame_shopping['GARMINCODE']))
+            shop.append(frame_shopping.shape[0])
+        else:
+            shop_garmins.append('')
+            shop.append(0)
+    else:
+        foodserv.append(0)
+        counts.append(0)
+        food.append(0)
+        accom.append(0)
+        recreat.append(0)
+        serv.append(0)
+        shop.append(0)
+        shop_garmins.append('')
+        food_garmins.append('')
+        accom_garmins.append('')
+        recreat_garmins.append('')
+        serv_garmins.append('') 
+```
+
+
+```python
+#Convert arrays to Pandas Series
+counts_series = pd.Series(counts)
+food_series = pd.Series(food)
+accomodation_series = pd.Series(accom)
+recreation_series = pd.Series(recreat)
+services_series = pd.Series(serv)
+shopping_series = pd.Series(shop)
+food_service_series = pd.Series(foodserv)
+food_series_garmins = pd.Series(food_garmins)
+accomodation_series_garmins = pd.Series(accom_garmins)
+recreation_series_garmins = pd.Series(recreat_garmins)
+services_series_garmins = pd.Series(serv_garmins)
+shopping_series_garmins = pd.Series(shop_garmins)
+```
+
+
+```python
+roads_csv['POI_count'] = counts_series
+roads_csv['Food and Drink count'] = food_series
+roads_csv['Accomodation count'] = accomodation_series 
+roads_csv['Recreation count'] = recreation_series
+roads_csv['Services count'] = services_series
+roads_csv['Shopping count'] = shopping_series
+roads_csv['Food and Drink Garmins'] = food_series_garmins
+roads_csv['Accomodation Garmins'] = accomodation_series_garmins
+roads_csv['Recreation Garmins'] = recreation_series_garmins
+roads_csv['Services Garmins'] = services_series_garmins
+roads_csv['Shopping Gramins'] = shopping_series_garmins
+roads_csv['Food Service'] = food_service_series
+```
+
+
+```python
+roads_csv.to_csv('Output/economicOutput_rev.csv')
+```
+
+End of code
+
+
+```python
+poi_file[(poi_file['utm_n'] <= (8637276.063 + 500))
+                    & (poi_file['utm_n'] >= (8637276.063 - 500))
+                    & (poi_file['utm_e'] <= (301380.8033 + 500))
+                    & (poi_file['utm_e'] >= (301380.8033 - 500))]
+```
+
+
+
+
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>FID</th>
+      <th>lon</th>
+      <th>lat</th>
+      <th>NOMBRE</th>
+      <th>GARMINCODE</th>
+      <th>GIROTIPO</th>
+      <th>TELEFONO</th>
+      <th>NOMBRE_VIA</th>
+      <th>CUADRA</th>
+      <th>URBANIZACI</th>
+      <th>DIRECCION</th>
+      <th>DISTRITO</th>
+      <th>PROVINCIA</th>
+      <th>DEPARTAMEN</th>
+      <th>PAIS</th>
+      <th>LONGITUDE</th>
+      <th>LATITUDE</th>
+      <th>TOT</th>
+      <th>utm_n</th>
+      <th>utm_e</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1495</th>
+      <td>1495</td>
+      <td>-76.827747</td>
+      <td>-12.322466</td>
+      <td>Club Mediterraneo</td>
+      <td>0x2c09</td>
+      <td>club</td>
+      <td></td>
+      <td>CARR PAMANERICANA SUR</td>
+      <td></td>
+      <td>UB JOSE OLAYA</td>
+      <td></td>
+      <td>PUNTA HERMOSA</td>
+      <td>LIMA</td>
+      <td>LIMA</td>
+      <td>PERU</td>
+      <td>-76.827747</td>
+      <td>-12.322466</td>
+      <td>-76.8277, -12.3225</td>
+      <td>8.637112e+06</td>
+      <td>301241.905838</td>
+    </tr>
+    <tr>
+      <th>3670</th>
+      <td>3670</td>
+      <td>-76.830793</td>
+      <td>-12.316765</td>
+      <td>Km 38</td>
+      <td>0x5a00</td>
+      <td>locale</td>
+      <td></td>
+      <td>CARR PANAMERICANA SUR</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>PUNTA HERMOSA</td>
+      <td>LIMA</td>
+      <td>LIMA</td>
+      <td>PERU</td>
+      <td>-76.830793</td>
+      <td>-12.316765</td>
+      <td>-76.8308, -12.3168</td>
+      <td>8.637740e+06</td>
+      <td>300906.264362</td>
+    </tr>
+    <tr>
+      <th>3671</th>
+      <td>3671</td>
+      <td>-76.825867</td>
+      <td>-12.324617</td>
+      <td>Km 39</td>
+      <td>0x5a00</td>
+      <td>locale</td>
+      <td></td>
+      <td>CARR PANAMERICANA SUR</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>PUNTA HERMOSA</td>
+      <td>LIMA</td>
+      <td>LIMA</td>
+      <td>PERU</td>
+      <td>-76.825867</td>
+      <td>-12.324617</td>
+      <td>-76.8259, -12.3246</td>
+      <td>8.636875e+06</td>
+      <td>301448.028665</td>
+    </tr>
+    <tr>
+      <th>19720</th>
+      <td>19720</td>
+      <td>-76.829692</td>
+      <td>-12.317579</td>
+      <td>Almacenes del Peru</td>
+      <td>0x2e04</td>
+      <td></td>
+      <td></td>
+      <td>CARR PANAMERICANA SUR</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>PUNTA HERMOSA</td>
+      <td>LIMA</td>
+      <td>LIMA</td>
+      <td>PERU</td>
+      <td>-76.829692</td>
+      <td>-12.317579</td>
+      <td>-76.8297, -12.3176</td>
+      <td>8.637651e+06</td>
+      <td>301026.646062</td>
+    </tr>
+    <tr>
+      <th>19722</th>
+      <td>19722</td>
+      <td>-76.827257</td>
+      <td>-12.323645</td>
+      <td>Praia</td>
+      <td>0x2d02</td>
+      <td>discoteca</td>
+      <td></td>
+      <td>CARR ANTIGUA PANAMERICANA SUR</td>
+      <td></td>
+      <td>UB JOSE OLAYA</td>
+      <td></td>
+      <td>PUNTA HERMOSA</td>
+      <td>LIMA</td>
+      <td>LIMA</td>
+      <td>PERU</td>
+      <td>-76.827257</td>
+      <td>-12.323645</td>
+      <td>-76.8273, -12.3236</td>
+      <td>8.636981e+06</td>
+      <td>301296.095462</td>
+    </tr>
+    <tr>
+      <th>19723</th>
+      <td>19723</td>
+      <td>-76.827339</td>
+      <td>-12.323527</td>
+      <td>Hostal el Coral</td>
+      <td>0x2b01</td>
+      <td></td>
+      <td></td>
+      <td>CARR ANTIGUA PANAMERICANA SUR</td>
+      <td></td>
+      <td>UB JOSE OLAYA</td>
+      <td></td>
+      <td>PUNTA HERMOSA</td>
+      <td>LIMA</td>
+      <td>LIMA</td>
+      <td>PERU</td>
+      <td>-76.827339</td>
+      <td>-12.323527</td>
+      <td>-76.8273, -12.3235</td>
+      <td>8.636994e+06</td>
+      <td>301287.086763</td>
+    </tr>
+    <tr>
+      <th>19724</th>
+      <td>19724</td>
+      <td>-76.827783</td>
+      <td>-12.325371</td>
+      <td>Club Cafae SE</td>
+      <td>0x2c08</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>PUNTA HERMOSA</td>
+      <td>LIMA</td>
+      <td>LIMA</td>
+      <td>PERU</td>
+      <td>-76.827783</td>
+      <td>-12.325371</td>
+      <td>-76.8278, -12.3254</td>
+      <td>8.636790e+06</td>
+      <td>301240.178838</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+roads_csv[roads_csv['Food Service'] != 0]
+```
+
+
+
+
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>pixel_ID</th>
+      <th>lat</th>
+      <th>lon</th>
+      <th>utm_n</th>
+      <th>utm_e</th>
+      <th>population</th>
+      <th>count_intersections</th>
+      <th>street_length_avg</th>
+      <th>street_length_total</th>
+      <th>streets_per_node_avg</th>
+      <th>...</th>
+      <th>Accomodation count</th>
+      <th>Recreation count</th>
+      <th>Services count</th>
+      <th>Shopping count</th>
+      <th>Food and Drink Garmins</th>
+      <th>Accomodation Garmins</th>
+      <th>Recreation Garmins</th>
+      <th>Services Garmins</th>
+      <th>Shopping Gramins</th>
+      <th>Food Service</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>51</th>
+      <td>51</td>
+      <td>-12.339065</td>
+      <td>-76.826587</td>
+      <td>8635276.063</td>
+      <td>301380.8033</td>
+      <td>29</td>
+      <td>65</td>
+      <td>56.889811</td>
+      <td>5973.430206</td>
+      <td>3.188406</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2</td>
+      <td>0x2a0b;0x2a00;0x2a00;0x2a00</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>0x2e04;0x2e05</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>117</th>
+      <td>117</td>
+      <td>-12.330026</td>
+      <td>-76.826524</td>
+      <td>8636276.063</td>
+      <td>301380.8033</td>
+      <td>1461</td>
+      <td>114</td>
+      <td>77.984326</td>
+      <td>13725.241410</td>
+      <td>3.041322</td>
+      <td>...</td>
+      <td>2</td>
+      <td>1</td>
+      <td>4</td>
+      <td>10</td>
+      <td>0x2a00;0x2a00;0x2a00;0x2a00;0x2a00;0x2a00;0x2a...</td>
+      <td>0x2b01;0x2b01</td>
+      <td>0x2d02</td>
+      <td>0x2f08;0x2f06;0x2f06;0x2f06</td>
+      <td>0x2e02;0x2e02;0x2e02;0x2e02;0x2e02;0x2e02;0x2e...</td>
+      <td>24</td>
+    </tr>
+    <tr>
+      <th>182</th>
+      <td>182</td>
+      <td>-12.320926</td>
+      <td>-76.835654</td>
+      <td>8637276.063</td>
+      <td>300380.8033</td>
+      <td>474</td>
+      <td>16</td>
+      <td>80.515030</td>
+      <td>1851.845693</td>
+      <td>2.833333</td>
+      <td>...</td>
+      <td>2</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0x2a00;0x2a00;0x2a00;0x2a00;0x2a00;0x2a00;0x2a...</td>
+      <td>0x2b01;0x2b01</td>
+      <td></td>
+      <td>0x2f06</td>
+      <td></td>
+      <td>12</td>
+    </tr>
+    <tr>
+      <th>183</th>
+      <td>183</td>
+      <td>-12.320988</td>
+      <td>-76.826461</td>
+      <td>8637276.063</td>
+      <td>301380.8033</td>
+      <td>222</td>
+      <td>3</td>
+      <td>30.598471</td>
+      <td>91.795413</td>
+      <td>3.000000</td>
+      <td>...</td>
+      <td>1</td>
+      <td>3</td>
+      <td>0</td>
+      <td>1</td>
+      <td></td>
+      <td>0x2b01</td>
+      <td>0x2c09;0x2d02;0x2c08</td>
+      <td></td>
+      <td>0x2e04</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>247</th>
+      <td>247</td>
+      <td>-12.311826</td>
+      <td>-76.844783</td>
+      <td>8638276.063</td>
+      <td>299380.8033</td>
+      <td>1309</td>
+      <td>29</td>
+      <td>83.069127</td>
+      <td>3156.626833</td>
+      <td>3.172414</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td></td>
+      <td>0x2b01</td>
+      <td></td>
+      <td></td>
+      <td>0x2e02</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>248</th>
+      <td>248</td>
+      <td>-12.311887</td>
+      <td>-76.835591</td>
+      <td>8638276.063</td>
+      <td>300380.8033</td>
+      <td>3558</td>
+      <td>57</td>
+      <td>85.523771</td>
+      <td>7697.139372</td>
+      <td>3.030769</td>
+      <td>...</td>
+      <td>5</td>
+      <td>2</td>
+      <td>5</td>
+      <td>15</td>
+      <td>0x2a04;0x2a0b;0x2a0b;0x2a0b;0x2a0b;0x2a0b;0x2a...</td>
+      <td>0x2b01;0x2b01;0x2b01;0x2b01;0x2b01</td>
+      <td>0x2d02;0x2d02</td>
+      <td>0x2f01;0x2f01;0x2f06;0x2f06;0x2f11</td>
+      <td>0x2e02;0x2e02;0x2e02;0x2e02;0x2e02;0x2e02;0x2e...</td>
+      <td>28</td>
+    </tr>
+    <tr>
+      <th>312</th>
+      <td>312</td>
+      <td>-12.302725</td>
+      <td>-76.853912</td>
+      <td>8639276.063</td>
+      <td>298380.8033</td>
+      <td>1768</td>
+      <td>63</td>
+      <td>60.119951</td>
+      <td>6192.354978</td>
+      <td>3.260870</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3</td>
+      <td>0x2a0b</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>0x2e02;0x2e02;0x2e02</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>313</th>
+      <td>313</td>
+      <td>-12.302787</td>
+      <td>-76.844720</td>
+      <td>8639276.063</td>
+      <td>299380.8033</td>
+      <td>6137</td>
+      <td>96</td>
+      <td>95.151978</td>
+      <td>13701.884890</td>
+      <td>3.140000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0x2a00</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01</td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>314</th>
+      <td>314</td>
+      <td>-12.302849</td>
+      <td>-76.835528</td>
+      <td>8639276.063</td>
+      <td>300380.8033</td>
+      <td>536</td>
+      <td>0</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0x2a00</td>
+      <td>0x2b01</td>
+      <td>0x2d02</td>
+      <td></td>
+      <td>0x2e02</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>377</th>
+      <td>377</td>
+      <td>-12.293624</td>
+      <td>-76.863040</td>
+      <td>8640276.063</td>
+      <td>297380.8033</td>
+      <td>380</td>
+      <td>17</td>
+      <td>82.914264</td>
+      <td>1658.285272</td>
+      <td>3.117647</td>
+      <td>...</td>
+      <td>0</td>
+      <td>1</td>
+      <td>2</td>
+      <td>0</td>
+      <td></td>
+      <td></td>
+      <td>0x2c08</td>
+      <td>0x2f01;0x2f01</td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>378</th>
+      <td>378</td>
+      <td>-12.293686</td>
+      <td>-76.853848</td>
+      <td>8640276.063</td>
+      <td>298380.8033</td>
+      <td>8452</td>
+      <td>145</td>
+      <td>80.334374</td>
+      <td>17994.899670</td>
+      <td>3.278912</td>
+      <td>...</td>
+      <td>4</td>
+      <td>0</td>
+      <td>4</td>
+      <td>9</td>
+      <td>0x2a00;0x2a00;0x2a00;0x2a0b;0x2a0c;0x2a0c</td>
+      <td>0x2b01;0x2b01;0x2b01;0x2b01</td>
+      <td></td>
+      <td>0x2f08;0x2f11;0x2f06;0x2f06</td>
+      <td>0x2e05;0x2e05;0x2e05;0x2e05;0x2e05;0x2e02;0x2e...</td>
+      <td>10</td>
+    </tr>
+    <tr>
+      <th>379</th>
+      <td>379</td>
+      <td>-12.293749</td>
+      <td>-76.844657</td>
+      <td>8640276.063</td>
+      <td>299380.8033</td>
+      <td>854</td>
+      <td>0</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3</td>
+      <td>1</td>
+      <td>0x2a00</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01;0x2f06</td>
+      <td>0x2e02</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>381</th>
+      <td>381</td>
+      <td>-12.293872</td>
+      <td>-76.826274</td>
+      <td>8640276.063</td>
+      <td>301380.8033</td>
+      <td>94</td>
+      <td>0</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td></td>
+      <td></td>
+      <td>0x2d02</td>
+      <td></td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>505</th>
+      <td>505</td>
+      <td>-12.275295</td>
+      <td>-76.899675</td>
+      <td>8642276.063</td>
+      <td>293380.8033</td>
+      <td>30</td>
+      <td>0</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0x2a00</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01</td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>506</th>
+      <td>506</td>
+      <td>-12.275358</td>
+      <td>-76.890485</td>
+      <td>8642276.063</td>
+      <td>294380.8033</td>
+      <td>496</td>
+      <td>0</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>1</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0x2a0b</td>
+      <td></td>
+      <td>0x2c08</td>
+      <td>0x2f01;0x2f01</td>
+      <td></td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>508</th>
+      <td>508</td>
+      <td>-12.275485</td>
+      <td>-76.872103</td>
+      <td>8642276.063</td>
+      <td>296380.8033</td>
+      <td>10039</td>
+      <td>66</td>
+      <td>85.365627</td>
+      <td>8707.293991</td>
+      <td>3.185714</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>15</td>
+      <td>16</td>
+      <td>0x2a0c;0x2a0c;0x2a0c;0x2a04</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01;0x2f01;0x2f01;0x2f06;0x2f06;0x2f...</td>
+      <td>0x2e04;0x2e04;0x2e04;0x2e04;0x2e02;0x2e02;0x2e...</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>570</th>
+      <td>570</td>
+      <td>-12.266193</td>
+      <td>-76.908801</td>
+      <td>8643276.063</td>
+      <td>292380.8033</td>
+      <td>64</td>
+      <td>0</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td></td>
+      <td></td>
+      <td>0x2c08</td>
+      <td></td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>573</th>
+      <td>573</td>
+      <td>-12.266383</td>
+      <td>-76.881230</td>
+      <td>8643276.063</td>
+      <td>295380.8033</td>
+      <td>1403</td>
+      <td>4</td>
+      <td>359.804509</td>
+      <td>1439.218038</td>
+      <td>3.000000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0x2a00</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>634</th>
+      <td>634</td>
+      <td>-12.257026</td>
+      <td>-76.927115</td>
+      <td>8644276.063</td>
+      <td>290380.8033</td>
+      <td>496</td>
+      <td>2</td>
+      <td>151.429841</td>
+      <td>151.429841</td>
+      <td>3.000000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3</td>
+      <td>1</td>
+      <td>0x2a0c;0x2a0c</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01;0x2f06</td>
+      <td>0x2e02</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>635</th>
+      <td>635</td>
+      <td>-12.257090</td>
+      <td>-76.917926</td>
+      <td>8644276.063</td>
+      <td>291380.8033</td>
+      <td>1016</td>
+      <td>21</td>
+      <td>136.723722</td>
+      <td>3554.816780</td>
+      <td>3.095238</td>
+      <td>...</td>
+      <td>0</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0</td>
+      <td></td>
+      <td></td>
+      <td>0x2c09;0x2c08</td>
+      <td></td>
+      <td></td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>636</th>
+      <td>636</td>
+      <td>-12.257155</td>
+      <td>-76.908736</td>
+      <td>8644276.063</td>
+      <td>292380.8033</td>
+      <td>342</td>
+      <td>2</td>
+      <td>80.955024</td>
+      <td>80.955024</td>
+      <td>3.000000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0x2a00</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>638</th>
+      <td>638</td>
+      <td>-12.257282</td>
+      <td>-76.890356</td>
+      <td>8644276.063</td>
+      <td>294380.8033</td>
+      <td>1563</td>
+      <td>20</td>
+      <td>87.562784</td>
+      <td>2276.632391</td>
+      <td>3.150000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>5</td>
+      <td>0</td>
+      <td>0x2a00;0x2a00;0x2a00;0x2a00;0x2a00;0x2a00;0x2a00</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01;0x2f01;0x2f01;0x2f08</td>
+      <td></td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <th>639</th>
+      <td>639</td>
+      <td>-12.257345</td>
+      <td>-76.881166</td>
+      <td>8644276.063</td>
+      <td>295380.8033</td>
+      <td>2623</td>
+      <td>19</td>
+      <td>180.435794</td>
+      <td>4150.023254</td>
+      <td>3.315789</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>6</td>
+      <td>2</td>
+      <td>0x2a00;0x2a00;0x2a00;0x2a00;0x2a00;0x2a0c</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01;0x2f01;0x2f01;0x2f06;0x2f08</td>
+      <td>0x2e05;0x2e02</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <th>699</th>
+      <td>699</td>
+      <td>-12.247923</td>
+      <td>-76.936239</td>
+      <td>8645276.063</td>
+      <td>289380.8033</td>
+      <td>592</td>
+      <td>8</td>
+      <td>69.505063</td>
+      <td>625.545569</td>
+      <td>3.250000</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>6</td>
+      <td>0</td>
+      <td></td>
+      <td>0x2b01</td>
+      <td></td>
+      <td>0x2f01;0x2f01;0x2f01;0x2f01;0x2f06;0x2f06</td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>701</th>
+      <td>701</td>
+      <td>-12.248052</td>
+      <td>-76.917860</td>
+      <td>8645276.063</td>
+      <td>291380.8033</td>
+      <td>5925</td>
+      <td>129</td>
+      <td>55.207247</td>
+      <td>11151.863920</td>
+      <td>3.147059</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0x2a0c</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>0x2e02</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>703</th>
+      <td>703</td>
+      <td>-12.248180</td>
+      <td>-76.899481</td>
+      <td>8645276.063</td>
+      <td>293380.8033</td>
+      <td>2573</td>
+      <td>131</td>
+      <td>64.842119</td>
+      <td>14135.581910</td>
+      <td>3.131034</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0x2a0c;0x2a0c;0x2a0c;0x2a0c</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>705</th>
+      <td>705</td>
+      <td>-12.248307</td>
+      <td>-76.881102</td>
+      <td>8645276.063</td>
+      <td>295380.8033</td>
+      <td>3445</td>
+      <td>20</td>
+      <td>161.982106</td>
+      <td>4211.534761</td>
+      <td>3.190476</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0x2a00</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>706</th>
+      <td>706</td>
+      <td>-12.248369</td>
+      <td>-76.871912</td>
+      <td>8645276.063</td>
+      <td>296380.8033</td>
+      <td>4477</td>
+      <td>15</td>
+      <td>134.279339</td>
+      <td>2417.028096</td>
+      <td>3.266667</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0x2a00;0x2a00;0x2a00;0x2a00;0x2a00;0x2a00;0x2a...</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01</td>
+      <td></td>
+      <td>9</td>
+    </tr>
+    <tr>
+      <th>766</th>
+      <td>766</td>
+      <td>-12.238950</td>
+      <td>-76.926984</td>
+      <td>8646276.063</td>
+      <td>290380.8033</td>
+      <td>5774</td>
+      <td>191</td>
+      <td>62.400798</td>
+      <td>17721.826610</td>
+      <td>3.270833</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3</td>
+      <td>0x2a0c</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>0x2e09;0x2e02;0x2e05</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>767</th>
+      <td>767</td>
+      <td>-12.239014</td>
+      <td>-76.917795</td>
+      <td>8646276.063</td>
+      <td>291380.8033</td>
+      <td>9230</td>
+      <td>257</td>
+      <td>61.033741</td>
+      <td>23864.192890</td>
+      <td>3.249027</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>6</td>
+      <td>4</td>
+      <td>0x2a05;0x2a00;0x2a0c;0x2a0c</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01;0x2f01;0x2f01;0x2f01;0x2f01</td>
+      <td>0x2e02;0x2e02;0x2e05;0x2e05</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>3394</th>
+      <td>3394</td>
+      <td>-11.876650</td>
+      <td>-77.034523</td>
+      <td>8686276.063</td>
+      <td>278380.8033</td>
+      <td>10953</td>
+      <td>127</td>
+      <td>83.431808</td>
+      <td>15768.611740</td>
+      <td>3.121212</td>
+      <td>...</td>
+      <td>4</td>
+      <td>0</td>
+      <td>2</td>
+      <td>3</td>
+      <td>0x2a00;0x2a0b;0x2a0b;0x2a0c</td>
+      <td>0x2b01;0x2b01;0x2b01;0x2b00</td>
+      <td></td>
+      <td>0x2f01;0x2f01</td>
+      <td>0x2e05;0x2e05;0x2e02</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <th>3395</th>
+      <td>3395</td>
+      <td>-11.876716</td>
+      <td>-77.025347</td>
+      <td>8686276.063</td>
+      <td>279380.8033</td>
+      <td>9451</td>
+      <td>257</td>
+      <td>66.116863</td>
+      <td>24727.706680</td>
+      <td>3.244186</td>
+      <td>...</td>
+      <td>0</td>
+      <td>1</td>
+      <td>9</td>
+      <td>2</td>
+      <td>0x2a00;0x2a05</td>
+      <td></td>
+      <td>0x2c09</td>
+      <td>0x2f08;0x2f08;0x2f08;0x2f01;0x2f01;0x2f01;0x2f...</td>
+      <td>0x2e05;0x2e05</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>3396</th>
+      <td>3396</td>
+      <td>-11.876782</td>
+      <td>-77.016170</td>
+      <td>8686276.063</td>
+      <td>280380.8033</td>
+      <td>9336</td>
+      <td>182</td>
+      <td>75.517986</td>
+      <td>22051.251810</td>
+      <td>3.433155</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>6</td>
+      <td>19</td>
+      <td>0x2a0c;0x2a0c;0x2a0c;0x2a0c;0x2a0c;0x2a0c;0x2a...</td>
+      <td>0x2b01</td>
+      <td></td>
+      <td>0x2f06;0x2f06;0x2f06;0x2f06;0x2f06;0x2f06</td>
+      <td>0x2e05;0x2e05;0x2e05;0x2e05;0x2e05;0x2e05;0x2e...</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>3450</th>
+      <td>3450</td>
+      <td>-11.866937</td>
+      <td>-77.126212</td>
+      <td>8687276.063</td>
+      <td>268380.8033</td>
+      <td>3823</td>
+      <td>24</td>
+      <td>150.500366</td>
+      <td>5117.012453</td>
+      <td>3.083333</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0x2a0c;0x2a0b</td>
+      <td>0x2b01</td>
+      <td></td>
+      <td>0x2f01;0x2f01</td>
+      <td></td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>3455</th>
+      <td>3455</td>
+      <td>-11.867278</td>
+      <td>-77.080335</td>
+      <td>8687276.063</td>
+      <td>273380.8033</td>
+      <td>7522</td>
+      <td>76</td>
+      <td>79.286070</td>
+      <td>9355.756286</td>
+      <td>3.132530</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2</td>
+      <td>5</td>
+      <td>0x2a04;0x2a0c;0x2a0c;0x2a0c;0x2a0c;0x2a05;0x2a05</td>
+      <td></td>
+      <td></td>
+      <td>0x2f06;0x2f06</td>
+      <td>0x2e05;0x2e05;0x2e05;0x2e05;0x2e04</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <th>3456</th>
+      <td>3456</td>
+      <td>-11.867346</td>
+      <td>-77.071159</td>
+      <td>8687276.063</td>
+      <td>274380.8033</td>
+      <td>10452</td>
+      <td>83</td>
+      <td>89.535589</td>
+      <td>10654.735100</td>
+      <td>3.137931</td>
+      <td>...</td>
+      <td>0</td>
+      <td>4</td>
+      <td>16</td>
+      <td>15</td>
+      <td>0x2a0c;0x2a0c;0x2a0c;0x2a00;0x2a04;0x2a05;0x2a...</td>
+      <td></td>
+      <td>0x2d02;0x2d02;0x2d02;0x2d02</td>
+      <td>0x2f01;0x2f01;0x2f06;0x2f06;0x2f06;0x2f06;0x2f...</td>
+      <td>0x2e02;0x2e02;0x2e02;0x2e05;0x2e05;0x2e05;0x2e...</td>
+      <td>13</td>
+    </tr>
+    <tr>
+      <th>3460</th>
+      <td>3460</td>
+      <td>-11.867612</td>
+      <td>-77.034456</td>
+      <td>8687276.063</td>
+      <td>278380.8033</td>
+      <td>5387</td>
+      <td>31</td>
+      <td>91.569018</td>
+      <td>5036.296002</td>
+      <td>2.534884</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0x2a0b</td>
+      <td></td>
+      <td></td>
+      <td>0x2f08</td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3461</th>
+      <td>3461</td>
+      <td>-11.867678</td>
+      <td>-77.025280</td>
+      <td>8687276.063</td>
+      <td>279380.8033</td>
+      <td>3175</td>
+      <td>219</td>
+      <td>67.472490</td>
+      <td>23075.591610</td>
+      <td>3.181818</td>
+      <td>...</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td></td>
+      <td>0x2b01;0x2b01</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>3462</th>
+      <td>3462</td>
+      <td>-11.867744</td>
+      <td>-77.016104</td>
+      <td>8687276.063</td>
+      <td>280380.8033</td>
+      <td>3099</td>
+      <td>205</td>
+      <td>69.685269</td>
+      <td>22438.656570</td>
+      <td>3.352381</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4</td>
+      <td>1</td>
+      <td>0x2a0c</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01;0x2f01;0x2f01</td>
+      <td>0x2e04</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3514</th>
+      <td>3514</td>
+      <td>-11.857761</td>
+      <td>-77.144492</td>
+      <td>8688276.063</td>
+      <td>266380.8033</td>
+      <td>1550</td>
+      <td>37</td>
+      <td>75.076971</td>
+      <td>4054.156421</td>
+      <td>2.818182</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0x2a04</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>0x2e02</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3516</th>
+      <td>3516</td>
+      <td>-11.857900</td>
+      <td>-77.126142</td>
+      <td>8688276.063</td>
+      <td>268380.8033</td>
+      <td>9030</td>
+      <td>314</td>
+      <td>50.513185</td>
+      <td>24498.894970</td>
+      <td>3.135802</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>2</td>
+      <td>7</td>
+      <td>0x2a0c;0x2a0c</td>
+      <td>0x2b01</td>
+      <td></td>
+      <td>0x2f01;0x2f01</td>
+      <td>0x2e02;0x2e02;0x2e02;0x2e04;0x2e05;0x2e05;0x2e08</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>3517</th>
+      <td>3517</td>
+      <td>-11.857969</td>
+      <td>-77.116967</td>
+      <td>8688276.063</td>
+      <td>269380.8033</td>
+      <td>16286</td>
+      <td>132</td>
+      <td>52.203870</td>
+      <td>11015.016500</td>
+      <td>2.818750</td>
+      <td>...</td>
+      <td>0</td>
+      <td>1</td>
+      <td>2</td>
+      <td>0</td>
+      <td></td>
+      <td></td>
+      <td>0x2c08</td>
+      <td>0x2f01;0x2f01</td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3526</th>
+      <td>3526</td>
+      <td>-11.858574</td>
+      <td>-77.034389</td>
+      <td>8688276.063</td>
+      <td>278380.8033</td>
+      <td>493</td>
+      <td>4</td>
+      <td>356.524971</td>
+      <td>1426.099882</td>
+      <td>2.600000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2</td>
+      <td>0x2a00</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>0x2e05;0x2e02</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3580</th>
+      <td>3580</td>
+      <td>-11.848724</td>
+      <td>-77.144422</td>
+      <td>8689276.063</td>
+      <td>266380.8033</td>
+      <td>5908</td>
+      <td>274</td>
+      <td>61.829416</td>
+      <td>25844.696050</td>
+      <td>3.233813</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2</td>
+      <td>0x2a00</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>0x2e02;0x2e02</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3586</th>
+      <td>3586</td>
+      <td>-11.849136</td>
+      <td>-77.089373</td>
+      <td>8689276.063</td>
+      <td>272380.8033</td>
+      <td>3572</td>
+      <td>22</td>
+      <td>108.652956</td>
+      <td>3259.588690</td>
+      <td>3.000000</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0x2a00</td>
+      <td>0x2b01</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>3645</th>
+      <td>3645</td>
+      <td>-11.839618</td>
+      <td>-77.153526</td>
+      <td>8690276.063</td>
+      <td>265380.8033</td>
+      <td>6546</td>
+      <td>159</td>
+      <td>74.322125</td>
+      <td>17168.410940</td>
+      <td>3.193750</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2</td>
+      <td>1</td>
+      <td>0x2a0c;0x2a0c</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01</td>
+      <td>0x2e02</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>3646</th>
+      <td>3646</td>
+      <td>-11.839687</td>
+      <td>-77.144351</td>
+      <td>8690276.063</td>
+      <td>266380.8033</td>
+      <td>5219</td>
+      <td>224</td>
+      <td>68.260989</td>
+      <td>22457.865240</td>
+      <td>3.185841</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>3</td>
+      <td>0x2a0b</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>0x2e05;0x2e02;0x2e02</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3647</th>
+      <td>3647</td>
+      <td>-11.839756</td>
+      <td>-77.135177</td>
+      <td>8690276.063</td>
+      <td>267380.8033</td>
+      <td>7726</td>
+      <td>155</td>
+      <td>70.081456</td>
+      <td>17099.875240</td>
+      <td>3.308176</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2</td>
+      <td>3</td>
+      <td>0x2a0c</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01</td>
+      <td>0x2e02;0x2e05;0x2e05</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3648</th>
+      <td>3648</td>
+      <td>-11.839825</td>
+      <td>-77.126002</td>
+      <td>8690276.063</td>
+      <td>268380.8033</td>
+      <td>7172</td>
+      <td>310</td>
+      <td>57.451043</td>
+      <td>30161.797440</td>
+      <td>3.457944</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4</td>
+      <td>0x2a0b;0x2a0c</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>0x2e05;0x2e05;0x2e05;0x2e02</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>3649</th>
+      <td>3649</td>
+      <td>-11.839894</td>
+      <td>-77.116828</td>
+      <td>8690276.063</td>
+      <td>269380.8033</td>
+      <td>7186</td>
+      <td>85</td>
+      <td>85.762745</td>
+      <td>10720.343160</td>
+      <td>3.211111</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4</td>
+      <td>1</td>
+      <td>0x2a0c</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01;0x2f01;0x2f01</td>
+      <td>0x2e05</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3651</th>
+      <td>3651</td>
+      <td>-11.840031</td>
+      <td>-77.098479</td>
+      <td>8690276.063</td>
+      <td>271380.8033</td>
+      <td>4034</td>
+      <td>86</td>
+      <td>99.922199</td>
+      <td>12290.430480</td>
+      <td>3.107527</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4</td>
+      <td>2</td>
+      <td>0x2a0c;0x2a00</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01;0x2f01;0x2f01</td>
+      <td>0x2e02;0x2e05</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>3721</th>
+      <td>3721</td>
+      <td>-11.831262</td>
+      <td>-77.061712</td>
+      <td>8691276.063</td>
+      <td>275380.8033</td>
+      <td>2824</td>
+      <td>32</td>
+      <td>113.261930</td>
+      <td>5436.572638</td>
+      <td>2.815789</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td></td>
+      <td>0x2b01</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3907</th>
+      <td>3907</td>
+      <td>-11.803330</td>
+      <td>-77.171589</td>
+      <td>8694276.063</td>
+      <td>263380.8033</td>
+      <td>1506</td>
+      <td>41</td>
+      <td>91.020553</td>
+      <td>5825.315422</td>
+      <td>3.404762</td>
+      <td>...</td>
+      <td>0</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td></td>
+      <td></td>
+      <td>0x2c08</td>
+      <td>0x2f0d</td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3908</th>
+      <td>3908</td>
+      <td>-11.803400</td>
+      <td>-77.162416</td>
+      <td>8694276.063</td>
+      <td>264380.8033</td>
+      <td>1593</td>
+      <td>0</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>0.000000</td>
+      <td>...</td>
+      <td>0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>2</td>
+      <td></td>
+      <td></td>
+      <td>0x2d02</td>
+      <td></td>
+      <td>0x2e04;0x2e04</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>3972</th>
+      <td>3972</td>
+      <td>-11.794223</td>
+      <td>-77.180691</td>
+      <td>8695276.063</td>
+      <td>262380.8033</td>
+      <td>824</td>
+      <td>16</td>
+      <td>90.687009</td>
+      <td>1904.427195</td>
+      <td>3.375000</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>0</td>
+      <td>1</td>
+      <td></td>
+      <td>0x2b04</td>
+      <td></td>
+      <td></td>
+      <td>0x2e02</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>4041</th>
+      <td>4041</td>
+      <td>-11.785395</td>
+      <td>-77.153102</td>
+      <td>8696276.063</td>
+      <td>265380.8033</td>
+      <td>1227</td>
+      <td>54</td>
+      <td>94.122089</td>
+      <td>6682.668354</td>
+      <td>3.185185</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2</td>
+      <td>4</td>
+      <td>0x2a0c</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01</td>
+      <td>0x2e05;0x2e05;0x2e09;0x2e02</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>4104</th>
+      <td>4104</td>
+      <td>-11.776149</td>
+      <td>-77.180548</td>
+      <td>8697276.063</td>
+      <td>262380.8033</td>
+      <td>1776</td>
+      <td>10</td>
+      <td>147.716149</td>
+      <td>2363.458387</td>
+      <td>2.600000</td>
+      <td>...</td>
+      <td>1</td>
+      <td>0</td>
+      <td>1</td>
+      <td>2</td>
+      <td>0x2a0b;0x2a0b;0x2a0b;0x2a0b;0x2a0b;0x2a0b;0x2a...</td>
+      <td>0x2b04</td>
+      <td></td>
+      <td>0x2f06</td>
+      <td>0x2e02;0x2e02</td>
+      <td>14</td>
+    </tr>
+    <tr>
+      <th>4105</th>
+      <td>4105</td>
+      <td>-11.776219</td>
+      <td>-77.171376</td>
+      <td>8697276.063</td>
+      <td>263380.8033</td>
+      <td>6060</td>
+      <td>165</td>
+      <td>63.658731</td>
+      <td>16487.611330</td>
+      <td>3.078652</td>
+      <td>...</td>
+      <td>0</td>
+      <td>2</td>
+      <td>4</td>
+      <td>2</td>
+      <td>0x2a05;0x2a05;0x2a05;0x2a00;0x2a00;0x2a00;0x2a...</td>
+      <td></td>
+      <td>0x2c08;0x4600</td>
+      <td>0x2f0b;0x2f0b;0x2f0b;0x2f0b</td>
+      <td>0x2e04;0x2e02</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <th>4106</th>
+      <td>4106</td>
+      <td>-11.776289</td>
+      <td>-77.162204</td>
+      <td>8697276.063</td>
+      <td>264380.8033</td>
+      <td>3668</td>
+      <td>130</td>
+      <td>86.807623</td>
+      <td>16580.256070</td>
+      <td>3.175573</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0x2a00</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01</td>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>4171</th>
+      <td>4171</td>
+      <td>-11.767182</td>
+      <td>-77.171305</td>
+      <td>8698276.063</td>
+      <td>263380.8033</td>
+      <td>3753</td>
+      <td>48</td>
+      <td>82.672094</td>
+      <td>5704.374498</td>
+      <td>3.244898</td>
+      <td>...</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0x2a0b</td>
+      <td></td>
+      <td></td>
+      <td>0x2f01;0x2f01</td>
+      <td></td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+<p>576 rows × 34 columns</p>
+</div>
+
+
+
+
+```python
+
+```

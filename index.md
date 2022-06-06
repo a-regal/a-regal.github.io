@@ -1,3 +1,7 @@
+<header>
+  <!-- TL;DR -->
+</header>
+
 ### Andres Regal
 
 <img 

@@ -6,6 +6,6 @@ style="float: left; width: 20%"/> Hello! My name is Andres Regal. I'm currently 
 <br/>
 <br/>
 
-In this website you can find information about my current projects (see [Projects](https://a-regal.github.io//projects/index.md)), my [Papers Digest](https://a-regal.github.io//papers_digest/index.md) section where I disect current state-of-the-art methods for Machine Learning and Operations Research, and other content which would be linked in this main page.
+In this website you can find information about my current projects (see [Projects](https://a-regal.github.io/projects/index.md)), my [Papers Digest](https://a-regal.github.io/papers_digest/index.md) section where I disect current state-of-the-art methods for Machine Learning and Operations Research, and other content which would be linked in this main page.
 
 

@@ -5,7 +5,7 @@ alt="Profile Picture"
 style="float: left; width: 20%"/>
 
 Hello! My name is Andres Regal. I'm currently a PhD student at Rensselear Polytechic Institute under the Transportation Program.
-You can find me on my socials such as [LinkedIn](https://www.linkedin.com/in/andrés-regal/), [Google Scholar](https://scholar.google.com/citations?user=G0rlo2gAAAAJ&hl=es), and to my work [email](regala@rpi.edu)
+You can find me on my socials such as [LinkedIn](https://www.linkedin.com/in/andrés-regal/), [Google Scholar](https://scholar.google.com/citations?user=G0rlo2gAAAAJ&hl=es), [GitHub](https://github.com/a-regal), and to my work [email](regala@rpi.edu).
 
 <br/>
 

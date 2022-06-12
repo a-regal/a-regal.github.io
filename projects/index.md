@@ -1,5 +1,3 @@
-# Projects
-
 This page hosts the main projects I work or have worked on (in chronological order).
 
 1. UrbanPy:

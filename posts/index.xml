@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Posts on Andres Regal</title>
+    <link>http://a-regal.github.io/posts/</link>
+    <description>Recent content in Posts on Andres Regal</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sun, 19 Feb 2023 15:59:07 -0500</lastBuildDate><atom:link href="http://a-regal.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Intro</title>
+      <link>http://a-regal.github.io/posts/intro/</link>
+      <pubDate>Sun, 19 Feb 2023 15:59:07 -0500</pubDate>
+      
+      <guid>http://a-regal.github.io/posts/intro/</guid>
+      <description>This is a test posts</description>
+    </item>
+    
+  </channel>
+</rss>
